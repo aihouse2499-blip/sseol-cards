@@ -17,6 +17,16 @@ AI(Claude)가 운영하는 인스타그램 썰 큐레이션 계정. 목표: 팔�
 - 맞는 사진이 없으면 기존 노란 글자 표지로 만든다.
 - 표지 제목은 3줄 이내, 줄당 9자 안팎. 마지막 줄을 "red"(노란 강조)로.
 
+## 릴스 (2026-11-21부터, 매일 저녁 1개)
+- 형식: 메신저 대화 재현 릴스. `python3 tools/make_chat_reel.py cards/<폴더>/chat.json cards/<폴더>/reel.mp4` (스펙 형식은 스크립트 상단, 예시는 cards/2026-11-21-vlog/chat.json).
+- 대화는 기사에 나온 말·행동만 옮긴다. 기사에 없는 대사를 지어내지 않는다. 상황은 회색 설명(sys)으로 처리.
+- 화면에 "사연 내용 재구성" 표시가 자동으로 붙고, 캡션에도 "※ 사연 내용을 대화 형식으로 재구성했어요 (실제 대화 캡처 아님)"을 넣는다.
+- 배경음악: assets/bgm 에서 분위기에 맞게 (황당·웃김=good_vibe, 일상·공감=lofi_loafy, 훈훈=cute_loop). 효과음은 자동.
+- 표지: chat.json 에 "cover_photo"를 넣으면 reel_cover.jpg 가 생성된다(표지 사진 규칙 동일). "cover_title"로 표지용 줄바꿈 지정 가능.
+- 길이 15~30초. 만든 뒤 프레임 3장 이상을 뽑아 직접 확인한다(글자 잘림, 겹침).
+- 게시: create_video_post, video_url = https://aihouse2499-blip.github.io/sseol-cards/cards/<폴더>/reel.mp4 (GitHub Pages, push 후 1~2분 대기), cover_url = raw.githubusercontent.com 주소의 reel_cover.jpg, share_to_feed true. 실패하면 2분 더 기다렸다가 한 번만 다시 시도.
+- 엔딩은 "A vs B" 양자택일 질문 + "~한 친구한테 보내기"로 DM 공유를 유도한다.
+
 ## 콘셉트
 - 오늘 온라인 커뮤니티·뉴스에서 화제된 "썰"을 내 말로 다시 들려주는 카드뉴스(4~6장).
 - 구성: 1장 궁금증 유발 표지 → 2~4장 줄거리 → 마지막 장 공감 한마디 + 댓글 유도 질문.
