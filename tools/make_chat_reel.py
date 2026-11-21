@@ -153,6 +153,37 @@ def footer(frame):
     d.text((W - 109, H - 60), "썰배달", font=noto(30, "Bold"), fill=DARK, anchor="mm")
 
 
+def make_cover(spec, photo_path, out_jpg):
+    """릴스 표지(1080x1920 JPEG). 프로필 격자에서는 가운데 3:4 정도만 보이므로 제목을 가운데에 둔다."""
+    im = Image.open(photo_path).convert("RGB")
+    r = max(W / im.width, H / im.height)
+    im = im.resize((int(im.width * r + 1), int(im.height * r + 1)), Image.LANCZOS)
+    left, top = (im.width - W) // 2, (im.height - H) // 2
+    im = im.crop((left, top, left + W, top + H)).convert("RGBA")
+    shade = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    sd = ImageDraw.Draw(shade)
+    for y in range(H):  # 가운데로 갈수록 어둡게
+        a = int(70 + 130 * (1 - abs(y - H * 0.52) / (H * 0.52)))
+        sd.line((0, y, W, y), fill=(0, 0, 0, max(70, min(200, a))))
+    im.alpha_composite(shade)
+    d = ImageDraw.Draw(im)
+    tf = title_font(150)
+    lines = spec.get("cover_title", spec["title"])
+    lh = 175
+    y = H // 2 - lh * len(lines) // 2 + lh // 2
+    for i, line in enumerate(lines):
+        col = (255, 216, 77) if i == len(lines) - 1 else (255, 255, 255)
+        d.text((W // 2, y), line, font=tf, fill=col, anchor="mm", stroke_width=6, stroke_fill=(0, 0, 0))
+        y += lh
+    # 말풍선 배지 (대화형 릴스라는 표시)
+    by = H // 2 - lh * len(lines) // 2 - 150
+    d.rounded_rectangle((W // 2 - 190, by, W // 2 + 190, by + 96), radius=48, fill=ME)
+    d.text((W // 2, by + 48), "카톡으로 보는 썰", font=noto(42, "Bold"), fill=DARK, anchor="mm")
+    d.rounded_rectangle((W // 2 - 130, y + 20, W // 2 + 130, y + 100), radius=40, fill=(34, 34, 34))
+    d.text((W // 2, y + 60), "썰배달", font=title_font(50), fill=(255, 216, 77), anchor="mm")
+    im.convert("RGB").save(out_jpg, "JPEG", quality=92)
+
+
 def main(spec_path, out):
     with open(spec_path, encoding="utf-8") as fp:
         spec = json.load(fp)
@@ -253,6 +284,12 @@ def main(spec_path, out):
             "-c:a", "aac", "-b:a", "160k", "-shortest", "-movflags", "+faststart", out]
     subprocess.run(cmd, check=True)
     print(f"{out} ({total:.1f}s, {len(cues)} sfx)")
+    if spec.get("cover_photo"):
+        root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        cp = spec["cover_photo"] if os.path.isabs(spec["cover_photo"]) else os.path.join(root, spec["cover_photo"])
+        cover = os.path.splitext(out)[0] + "_cover.jpg"
+        make_cover(spec, cp, cover)
+        print(f"cover: {cover}")
 
 
 if __name__ == "__main__":
