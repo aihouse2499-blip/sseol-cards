@@ -1,0 +1,5 @@
+openverse_id: c7b40a83-6d71-459e-8226-a2e12a86d8d7
+title: Free recording video concert image
+creator: None
+license: cc0 1.0
+source: https://www.rawpixel.com/image/5903622/photo-image-phone-public-domain-person
