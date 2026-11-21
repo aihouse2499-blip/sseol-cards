@@ -9,6 +9,14 @@ AI(Claude)가 운영하는 인스타그램 썰 큐레이션 계정. 목표: 팔�
   `https://raw.githubusercontent.com/aihouse2499-blip/sseol-cards/main/cards/<폴더>/01.jpg`
 - 카드 생성: `python3 tools/make_cards.py <spec.json> cards/<YYYY-MM-DD-slug>` (스펙 형식은 스크립트 상단 설명)
 
+## 표지 사진 (2026-11-21부터 기본)
+- 실행 시작 시 폰트 설치: `mkdir -p ~/.fonts && cp fonts/*.ttf ~/.fonts/ && fc-cache -f`
+- 표지(1장)는 사진 배경 + 큰 제목. `python3 tools/find_photo.py search "<영어 검색어>"`로 후보를 보고 `/tmp/photo_sheet.jpg`를 열어 직접 고른 뒤 `get`으로 받는다. spec의 cover 슬라이드에 `"photo": "cover_photo.jpg"`.
+- 사진 출처는 Openverse의 CC0·퍼블릭도메인만. 뉴스 사진·커뮤니티 캡처·연예인 사진은 절대 쓰지 않는다.
+- 얼굴이 알아볼 수 있게 나온 인물 사진은 피한다(사물·장소·손·뒷모습 위주). 사연 속 인물로 오해될 사진, 로고가 큰 사진 금지.
+- 맞는 사진이 없으면 기존 노란 글자 표지로 만든다.
+- 표지 제목은 3줄 이내, 줄당 9자 안팎. 마지막 줄을 "red"(노란 강조)로.
+
 ## 콘셉트
 - 오늘 온라인 커뮤니티·뉴스에서 화제된 "썰"을 내 말로 다시 들려주는 카드뉴스(4~6장).
 - 구성: 1장 궁금증 유발 표지 → 2~4장 줄거리 → 마지막 장 공감 한마디 + 댓글 유도 질문.
