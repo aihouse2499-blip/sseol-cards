@@ -13,7 +13,7 @@ chat.json:
     {"t": "them", "text": "이번 주말에 호캉스 갈래?"},
     {"t": "me", "text": "좋아"},
     {"t": "settle", "title": "정산 요청", "items": ["호텔 1박", "생화 장식"], "note": "1/2 정산"},  # 카카오 정산 카드
-    {"t": "transfer", "text": "송금 완료"}       # 내가 보낸 송금 카드
+    {"t": "transfer", "text": "송금 완료"},      # 내가 보낸 송금 카드 ("from": "them" 이면 상대가 보낸 송금)
   ],
   "ending": ["너라면", "결혼한다 vs 파혼한다"],
   "cta": "반반 커플 친구한테 보내기"
@@ -153,7 +153,7 @@ def render_item(m, first_in_group, partner):
         for i, l in enumerate(lines):
             d.text((w // 2, 15 + lh * i + lh // 2), l, font=f, fill=(255, 255, 255), anchor="mm")
         return im, (W - w) // 2
-    mine = t in ("me", "transfer")
+    mine = t == "me" or (t == "transfer" and m.get("from") != "them")
     cw, ch, draw = content_size(m)
     color = YEL if (mine and t == "me") or t == "transfer" else WHITE
     if t == "settle":
@@ -228,7 +228,8 @@ def main(spec_path, out):
     with open(spec_path, encoding="utf-8") as fp:
         spec = json.load(fp)
     msgs = spec["messages"]
-    side = lambda m: "me" if m["t"] in ("me", "transfer") else ("them" if m["t"] in ("them", "settle") else "n")
+    side = lambda m: ("them" if m.get("from") == "them" else "me") if m["t"] == "transfer" else (
+        "me" if m["t"] == "me" else ("them" if m["t"] in ("them", "settle") else "n"))
 
     items, prev = [], None
     for m in msgs:
