@@ -1,0 +1,9 @@
+lofi_organ.mp3 | Lofi Jazz Organ Loop 95 BPM (freesound, openverse 2f5d351d) | CC0 | https://cdn.freesound.org/previews/629/629154_12574855-hq.mp3
+lofi_melody.mp3 | Chill Lofi Melody Loop 95 BPM (freesound, openverse 2ede71c8) | CC0 | https://cdn.freesound.org/previews/629/629147_12574855-hq.mp3
+acoustic_orchestra.mp3 | Upbeat Acoustic Guitar With Orchestra (freesound, openverse d287ca44) | CC0 | https://cdn.freesound.org/previews/709/709034_15345947-hq.mp3
+acoustic_upbeat.mp3 | upbeat acoustic guitar soundtrack (freesound, openverse 37e7adcf) | CC0 | https://cdn.freesound.org/previews/708/708526_15345947-hq.mp3
+happy_taps.mp3 | HappyTaps (freesound, openverse e091bbbe) | CC0 | https://cdn.freesound.org/previews/682/682158_11740799-hq.mp3
+piano_suspense.mp3 | Piano suspenses (freesound, openverse d948ab76) | CC0 | https://cdn.freesound.org/previews/503/503259_9453283-hq.mp3
+jazz_piano.mp3 | Late Jazz Piano (freesound, openverse 60c1cefa) | CC0 | https://cdn.freesound.org/previews/570/570347_2282212-hq.mp3
+happy_strings.mp3 | Happy Strings (freesound, openverse a0d5c6de) | CC0 | https://cdn.freesound.org/previews/683/683104_11740799-hq.mp3
+sims_beat.mp3 | Sims-Type Beat (freesound, openverse d46ef6f2) | CC0 | https://cdn.freesound.org/previews/545/545460_6714882-hq.mp3

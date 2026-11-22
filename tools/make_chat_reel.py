@@ -11,8 +11,16 @@ chat.json:
     {"t": "them","text": "우리 집 앞에 있길래 우리 건 줄"}
   ],
   "ending": ["너네라면", "그냥 넘어가?"],
-  "cta": "이런 이웃 겪어본 친구한테 보내기"
+  "cta": "이런 이웃 겪어본 친구한테 보내기",
+  "setup": "택배가 사라진 날, 아랫집에서 발견",          # (권장) 첫 화면 한 줄 상황 설명
+  "me_name": "나",                                       # 노란 말풍선 위 이름표
+  "me_desc": "택배 주인",                                # (권장) 첫 화면에서 '나'가 누구인지
+  # me 메시지에 "to": "조카" 를 주면 이름표가 "나 → 조카"로 바뀐다(단톡방에서 누구한테 하는 말인지)
+  "cast": [{"name": "102호 아저씨", "desc": "아랫집 이웃"}],  # (권장) 첫 화면 등장인물 소개
+  "mood": "funny"   # 배경음악 분위기: funny / daily / warm / serious. "bgm"을 직접 지정하지 않으면
+                    # 분위기에 맞는 곡 중 최근에 덜 쓴 곡을 자동으로 고른다(assets/bgm/history.txt)
 }
+- them 메시지에 "name"을 주면 그 사람 이름표와 전용 색 아바타(이름 첫 글자)가 붙는다. 단톡방처럼 여러 명 가능.
 - 실제 대화 캡처가 아니라 사연을 재구성한 화면이므로 화면에 항상 "사연 내용 재구성" 표시가 붙는다.
 - 1080x1920, 30fps, 무음.
 """
@@ -32,6 +40,16 @@ BG = (178, 199, 217)
 ME = (254, 229, 0)
 THEM = (255, 255, 255)
 DARK = (30, 30, 30)
+
+AVATAR_COLORS = [(244, 143, 177), (129, 199, 132), (100, 181, 246), (255, 183, 77), (186, 104, 200), (77, 182, 172)]
+SPEAKER_COLOR = {}
+
+MOOD_BGM = {
+    "funny": ["good_vibe.mp3", "happy_taps.mp3", "happy_strings.mp3", "acoustic_upbeat.mp3", "sims_beat.mp3"],
+    "daily": ["lofi_loafy.mp3", "lofi_melody.mp3", "lofi_organ.mp3", "jazz_piano.mp3", "sims_beat.mp3"],
+    "warm": ["cute_loop.mp3", "acoustic_orchestra.mp3", "happy_strings.mp3"],
+    "serious": ["piano_suspense.mp3", "jazz_piano.mp3", "lofi_organ.mp3"],
+}
 
 HEADER_H = 430          # 제목 + 대화방 바
 CHAT_TOP = HEADER_H + 30
@@ -64,6 +82,13 @@ def wrap(text, font, maxw):
     return out
 
 
+def draw_avatar(d, name, av=110):
+    col = SPEAKER_COLOR.setdefault(name, AVATAR_COLORS[len(SPEAKER_COLOR) % len(AVATAR_COLORS)])
+    d.rounded_rectangle((0, 0, av, av), radius=40, fill=col)
+    ch = (name or "?").strip()[:1]
+    d.text((av // 2, av // 2 + 2), ch, font=noto(58, "Bold"), fill="white", anchor="mm")
+
+
 def render_bubble(msg):
     """메시지 하나를 RGBA 이미지로. (이미지, 정렬)"""
     kind = msg["t"]
@@ -90,31 +115,33 @@ def render_bubble(msg):
         w, h = av + 22 + bw, max(bh + 56, av)
         im = Image.new("RGBA", (w, h), (0, 0, 0, 0))
         d = ImageDraw.Draw(im)
-        d.rounded_rectangle((0, 0, av, av), radius=40, fill=(160, 175, 190))
-        d.ellipse((30, 18, 80, 68), fill=(235, 240, 245))
-        d.rounded_rectangle((18, 72, 92, 110), radius=18, fill=(235, 240, 245))
-        d.text((av + 26, 0), msg.get("name", ""), font=noto(34, "Regular"), fill=(60, 60, 60))
+        draw_avatar(d, msg.get("name", ""))
+        d.text((av + 26, 0), msg.get("name", ""), font=noto(36, "Bold"), fill=(40, 40, 40))
         x0, y0 = av + 22, 52
         d.rounded_rectangle((x0, y0, x0 + bw, y0 + bh), radius=34, fill=color)
         for i, l in enumerate(lines):
             d.text((x0 + 32, y0 + 20 + lh * i), l, font=f, fill=DARK)
         return im, "left"
-    w, h = bw, bh
+    label = msg.get("label")
+    top = 52 if label else 0
+    nf = noto(36, "Bold")
+    w = max(bw, int(nf.getlength(label)) + 4) if label else bw
+    h = bh + top
     im = Image.new("RGBA", (w, h), (0, 0, 0, 0))
     d = ImageDraw.Draw(im)
-    d.rounded_rectangle((0, 0, bw, bh), radius=34, fill=color)
+    if label:
+        d.text((w, 0), label, font=nf, fill=(40, 40, 40), anchor="ra")
+    d.rounded_rectangle((w - bw, top, w, top + bh), radius=34, fill=color)
     for i, l in enumerate(lines):
-        d.text((32, 20 + lh * i), l, font=f, fill=DARK)
+        d.text((w - bw + 32, top + 20 + lh * i), l, font=f, fill=DARK)
     return im, "right"
 
 
-def typing_bubble(phase):
+def typing_bubble(phase, name=""):
     av = 110
     im = Image.new("RGBA", (av + 22 + 170, 160), (0, 0, 0, 0))
     d = ImageDraw.Draw(im)
-    d.rounded_rectangle((0, 0, av, av), radius=40, fill=(160, 175, 190))
-    d.ellipse((30, 18, 80, 68), fill=(235, 240, 245))
-    d.rounded_rectangle((18, 72, 92, 110), radius=18, fill=(235, 240, 245))
+    draw_avatar(d, name)
     x0, y0 = av + 22, 52
     d.rounded_rectangle((x0, y0, x0 + 170, y0 + 100), radius=34, fill=THEM)
     for i in range(3):
@@ -143,6 +170,64 @@ def header(spec, progress):
     # 진행 막대
     d.rectangle((0, HEADER_H - 8, int(W * progress), HEADER_H), fill=(255, 216, 77))
     return im
+
+
+def intro_card(spec):
+    """첫 화면: 상황 한 줄 + 등장인물(누가 누구인지)."""
+    cast = [{"name": "나", "desc": spec.get("me_desc", ""), "me": True}] + spec.get("cast", [])
+    im = Image.new("RGBA", (W - 2 * PAD, 10), (0, 0, 0, 0))
+    rows = []
+    if spec.get("setup"):
+        rows.append(("setup", spec["setup"]))
+    rows.append(("head", "등장인물"))
+    for c in cast:
+        rows.append(("cast", c))
+    f_setup, f_head, f_name, f_desc = noto(46, "Bold"), noto(36, "Bold"), noto(44, "Bold"), noto(40, "Regular")
+    setup_lines = wrap(spec.get("setup", ""), f_setup, W - 2 * PAD - 80) if spec.get("setup") else []
+    h = 40 + len(setup_lines) * 64 + (30 if setup_lines else 0) + 60 + len(cast) * 110 + 30
+    im = Image.new("RGBA", (W - 2 * PAD, h), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    d.rounded_rectangle((0, 0, im.width - 1, h - 1), radius=40, fill=(255, 255, 255, 235))
+    y = 40
+    for l in setup_lines:
+        d.text((40, y), l, font=f_setup, fill=DARK)
+        y += 64
+    if setup_lines:
+        y += 30
+    d.text((40, y), "등장인물", font=f_head, fill=(120, 120, 120))
+    y += 60
+    for c in cast:
+        if c.get("me"):
+            d.rounded_rectangle((40, y, 130, y + 90), radius=30, fill=ME)
+            d.text((85, y + 45), "나", font=noto(44, "Bold"), fill=DARK, anchor="mm")
+            text = "나"
+        else:
+            sub = Image.new("RGBA", (110, 110), (0, 0, 0, 0))
+            draw_avatar(ImageDraw.Draw(sub), c["name"])
+            im.alpha_composite(sub.resize((90, 90)), (40, y))
+            text = c["name"]
+        d.text((160, y + 45), text, font=f_name, fill=DARK, anchor="lm")
+        if c.get("desc"):
+            x2 = 160 + int(f_name.getlength(text)) + 24
+            d.text((x2, y + 47), c["desc"], font=f_desc, fill=(110, 110, 110), anchor="lm")
+        y += 110
+    return im
+
+
+def pick_bgm(spec, assets):
+    if spec.get("bgm"):
+        return spec["bgm"]
+    cands = MOOD_BGM.get(spec.get("mood", "daily"), MOOD_BGM["daily"])
+    cands = [c for c in cands if os.path.exists(os.path.join(assets, "bgm", c))]
+    hist_path = os.path.join(assets, "bgm", "history.txt")
+    hist = open(hist_path).read().split() if os.path.exists(hist_path) else []
+    # 가장 오래전에 쓴(또는 안 쓴) 곡
+    def last_used(c):
+        return max([i for i, h in enumerate(hist) if h == c], default=-1)
+    choice = min(cands, key=last_used)
+    with open(hist_path, "a") as fp:
+        fp.write(choice + "\n")
+    return choice
 
 
 def footer(frame):
@@ -187,17 +272,29 @@ def make_cover(spec, photo_path, out_jpg):
 def main(spec_path, out):
     with open(spec_path, encoding="utf-8") as fp:
         spec = json.load(fp)
+    SPEAKER_COLOR.clear()
+    prev = None
     for m in spec["messages"]:
         if m["t"] == "them":
             m.setdefault("name", spec["partner"])
+        if m["t"] == "me" and m.get("to"):
+            m.setdefault("label", f'{spec.get("me_name", "나")} → {m["to"]}')
+        elif m["t"] == "me" and prev != "me":
+            m.setdefault("label", spec.get("me_name", "나"))
+        prev = m["t"]
+    for c in spec.get("cast", []):
+        draw_avatar(ImageDraw.Draw(Image.new("RGBA", (110, 110))), c["name"])
+
+    intro = intro_card(spec) if (spec.get("cast") or spec.get("setup")) else None
+    intro_end = 2.8 if intro else 0.0
 
     # 타임라인: 각 메시지 (등장시각, 이미지, 정렬, 높이), them 앞에는 입력중 표시
-    events, t = [], 1.2
+    events, t = [], intro_end + (0.4 if intro else 1.2)
     for m in spec["messages"]:
         img, align = render_bubble(m)
         if m["t"] == "them":
-            events.append({"start": t, "typing": True, "dur": 0.7})
-            t += 0.7
+            events.append({"start": t, "typing": True, "dur": 0.6, "name": m["name"]})
+            t += 0.6
         events.append({"start": t, "img": img, "align": align})
         read = 0.9 + len(m["text"]) * 0.055
         t += min(max(read, 1.3), 2.6)
@@ -233,7 +330,13 @@ def main(spec_path, out):
                 frame.alpha_composite(im2, (int(x), int(y + (img.height - im2.height) / 2)))
             y += img.height + gap
         if typing:
-            frame.alpha_composite(typing_bubble(now * 2), (PAD, int(y)))
+            frame.alpha_composite(typing_bubble(now * 2, typing[0]["name"]), (PAD, int(y)))
+        if intro and now < intro_end + 0.3:
+            a = 1.0 if now < intro_end else 1 - (now - intro_end) / 0.3
+            ii = intro.copy()
+            if a < 1:
+                ii.putalpha(ii.getchannel("A").point(lambda v: int(v * a)))
+            frame.alpha_composite(ii, (PAD, CHAT_TOP + 60))
         footer(frame)
         frame.alpha_composite(header(spec, min(1.0, now / total)), (0, 0))
         # 엔딩 오버레이
@@ -268,11 +371,13 @@ def main(spec_path, out):
         else:
             cues.append(("sfx/plop.mp3", e["start"], None, 0.6))
     cues.append(("sfx/ding.mp3", end_start, None, 0.8))
-    bgm = os.path.join(assets, "bgm", spec.get("bgm", "good_vibe.mp3"))
+    bgm_name = pick_bgm(spec, assets)
+    print("bgm:", bgm_name)
+    bgm = os.path.join(assets, "bgm", bgm_name)
     cmd = ["ffmpeg", "-loglevel", "error", "-y", "-i", silent, "-stream_loop", "-1", "-i", bgm]
     for f, _, _, _ in cues:
         cmd += ["-i", os.path.join(assets, f)]
-    parts = [f"[1:a]atrim=0:{total:.2f},volume={spec.get('bgm_volume', 0.35)},afade=t=in:d=0.6,afade=t=out:st={total - 1.5:.2f}:d=1.5[bg]"]
+    parts = [f"[1:a]atrim=0:{total:.2f},loudnorm=I=-16,volume={spec.get('bgm_volume', 0.35)},afade=t=in:d=0.6,afade=t=out:st={total - 1.5:.2f}:d=1.5[bg]"]
     labels = ["[bg]"]
     for i, (f, start, dur, vol) in enumerate(cues):
         trim = f"atrim=0:{dur:.2f}," if dur else ""

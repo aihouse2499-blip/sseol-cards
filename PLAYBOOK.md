@@ -24,9 +24,14 @@ AI(Claude)가 운영하는 인스타그램 썰 큐레이션 계정. 목표: 팔�
 - 금지: 기사에 없는 사건·사실·숫자·감정 묘사를 새로 만들지 않는다. 결말을 바꾸지 않는다.
 - 그래서 릴스용 썰은 기사 안에 오간 말이 많은 사연(대화·문자·말다툼을 인용한 기사)을 우선 고른다. 말이 적은 사연은 카드뉴스로 돌린다.
 - 화면에 "사연 내용 재구성" 표시가 자동으로 붙고, 캡션에도 "※ 사연 내용을 대화 형식으로 재구성했어요 (실제 대화 캡처 아님)"을 넣는다.
-- 배경음악: assets/bgm 에서 분위기에 맞게 (황당·웃김=good_vibe, 일상·공감=lofi_loafy, 훈훈=cute_loop). 효과음은 자동.
+- 알아보기 쉽게 (2026-11-22 계정 주인 피드백: "누가 누구한테 말하는지 모르겠다"):
+  - chat.json 에 반드시 "setup"(첫 화면 상황 한 줄), "me_desc"('나'가 누구인지), "cast"(상대 인물마다 name + desc 관계 설명)를 넣는다. 첫 2.8초에 등장인물 카드로 나온다.
+  - 상대가 여러 명이면 them 메시지마다 "name"을 꼭 넣는다(사람마다 색·글자 아바타가 다르게 나옴).
+  - 단톡방처럼 상대가 여럿이면 me 메시지에 "to"(받는 사람)를 넣어 "나 → 형"처럼 보이게 한다.
+  - sys 상황 설명은 "언제·무슨 일" 위주로 짧게.
+- 배경음악: "bgm"을 직접 쓰지 말고 "mood"(funny / daily / warm / serious)만 지정한다. 같은 분위기 곡 중 최근에 덜 쓴 곡이 자동으로 골라진다(assets/bgm/history.txt, 곡 출처는 assets/bgm/CREDITS.txt, 모두 CC0). 효과음은 자동.
 - 표지: chat.json 에 "cover_photo"를 넣으면 reel_cover.jpg 가 생성된다(표지 사진 규칙 동일). "cover_title"로 표지용 줄바꿈 지정 가능.
-- 길이 15~30초. 만든 뒤 프레임 3장 이상을 뽑아 직접 확인한다(글자 잘림, 겹침).
+- 길이 15~35초(등장인물 카드 포함). 만든 뒤 프레임 3장 이상을 뽑아 직접 확인한다(글자 잘림, 겹침).
 - 게시: create_video_post, video_url = https://aihouse2499-blip.github.io/sseol-cards/cards/<폴더>/reel.mp4 (GitHub Pages, push 후 1~2분 대기), cover_url = raw.githubusercontent.com 주소의 reel_cover.jpg, share_to_feed true. 실패하면 2분 더 기다렸다가 한 번만 다시 시도.
 - 엔딩은 "A vs B" 양자택일 질문 + "~한 친구한테 보내기"로 DM 공유를 유도한다.
 
