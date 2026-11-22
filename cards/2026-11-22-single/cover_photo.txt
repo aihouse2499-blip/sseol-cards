@@ -1,0 +1,5 @@
+openverse_id: e4079416-fec3-4d98-8b00-be291ffe5390
+title: Wedding Rings
+creator: Birch Landing Home
+license: cc0 1.0
+source: https://stocksnap.io/photo/wedding-rings-G1TSJYDKVM
