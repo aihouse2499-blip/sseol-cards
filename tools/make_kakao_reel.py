@@ -3,7 +3,8 @@
 사용법: python3 tools/make_kakao_reel.py chat.json out.mp4
 chat.json:
 {
-  "hook": ["프러포즈 해놓고", "비용 N빵 청구한 남친"],   # 첫 2.4초 큰 자막 (마지막 줄 노란 강조)
+  "hook": ["프러포즈 해놓고", "비용 N빵 청구한 남친"],   # 첫 2초 큰 자막 (마지막 줄 노란 강조)
+  "teaser": 13,      # (권장) 첫 화면에 미리 보여줄 결정적인 말풍선 번호(messages 의 0부터 센 위치). 결말 한 줄을 먼저 보여주고 처음부터 재생
   "cover_title": ["프러포즈 비용", "N빵 청구한", "남친"],    # 표지용 (없으면 hook)
   "cover_photo": "cards/<폴더>/cover_photo.jpg",
   "partner": "남자친구",            # 대화방 이름 = 상대 이름 (등장인물은 나 + 상대 2명만)
@@ -239,7 +240,17 @@ def main(spec_path, out):
         items.append({"img": img, "x": x, "gap": gap_before, "side": s, "m": m})
         prev = s
 
-    hook_end = 2.4
+    hook_end = float(spec.get("hook_sec", 2.0))
+    # 티저: 결정적인 말풍선(예: 상대의 막말)을 첫 화면에 먼저 보여주고 처음부터 대화를 재생 (open loop)
+    teaser = None
+    if spec.get("teaser") is not None:
+        tm = dict(msgs[spec["teaser"]])
+        timg, _ = render_item(tm, False, spec["partner"])
+        if timg.width > 0:
+            # 아바타 자리 여백 잘라내고 1.3배 확대
+            bbox = timg.getbbox()
+            timg = timg.crop(bbox)
+            teaser = timg.resize((int(timg.width * 1.3), int(timg.height * 1.3)), Image.LANCZOS)
     t = hook_end + 0.2
     for it in items:
         it["start"] = t
@@ -285,13 +296,20 @@ def main(spec_path, out):
         if now < hook_end + 0.3:
             a = 1.0 if now < hook_end else 1 - (now - hook_end) / 0.3
             ov = Image.new("RGBA", (W, H), (0, 0, 0, int(150 * a)))
+            if teaser is not None:
+                ti = teaser.copy()
+                ti.putalpha(ti.getchannel("A").point(lambda v: int(v * a)))
+                pop = min(1.0, now / 0.25)
+                tw = max(1, int(ti.width * (0.85 + 0.15 * pop)))
+                ti = ti.resize((tw, max(1, int(ti.height * tw / ti.width))))
+                ov.alpha_composite(ti, ((W - ti.width) // 2, int(H * 0.56)))
             od = ImageDraw.Draw(ov)
             lines = spec["hook"]
             sz = 118
             while max(title_font(sz).getlength(l) for l in lines) > W - 80:
                 sz -= 6
             tf = title_font(sz)
-            yy = H // 2 - 70 * len(lines)
+            yy = (int(H * 0.50) - 140 * len(lines)) if teaser is not None else H // 2 - 70 * len(lines)
             for i, line in enumerate(lines):
                 col = (255, 216, 77) if i == len(lines) - 1 else (255, 255, 255)
                 od.text((W // 2, yy + 70), line, font=tf, fill=col + (int(255 * a),), anchor="mm",
