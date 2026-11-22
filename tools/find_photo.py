@@ -20,10 +20,18 @@ from PIL import Image, ImageDraw
 API = "https://api.openverse.org/v1/images/"
 
 
-def fetch(url):
-    req = urllib.request.Request(url, headers={"User-Agent": "sseol-delivery-bot"})
-    with urllib.request.urlopen(req, timeout=30) as r:
-        return r.read()
+def fetch(url, tries=4):
+    """Openverse 가 가끔 504 를 내므로 몇 번 다시 시도한다."""
+    import time
+    for i in range(tries):
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": "sseol-delivery-bot"})
+            with urllib.request.urlopen(req, timeout=30) as r:
+                return r.read()
+        except Exception:
+            if i == tries - 1:
+                raise
+            time.sleep(4 * (i + 1))
 
 
 def search(q, n=20):
