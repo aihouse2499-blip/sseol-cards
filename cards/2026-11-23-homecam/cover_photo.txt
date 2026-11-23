@@ -1,0 +1,5 @@
+openverse_id: 29a10878-44bf-4bf9-9b09-8b8d24450f97
+title: CCTV camera protection
+creator: None
+license: cc0 1.0
+source: https://www.rawpixel.com/image/6027588/photo-image-public-domain-camera-wall
