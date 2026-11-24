@@ -1,0 +1,5 @@
+openverse_id: ebc775bd-0943-464b-add4-0c0f520a7288
+title: CIGARETTE
+creator: Fried Dough
+license: pdm 1.0
+source: https://www.flickr.com/photos/42787780@N04/6447395405
