@@ -1,0 +1,5 @@
+openverse_id: ed7f2ad9-51be-4cda-a74c-4cea02803265
+title: Stockmarket Charts
+creator: Negative Space
+license: cc0 1.0
+source: https://stocksnap.io/photo/stockmarket-charts-G3YOGRBLF3
