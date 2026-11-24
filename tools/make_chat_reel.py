@@ -3,6 +3,8 @@
 사용법: python3 tools/make_chat_reel.py chat.json out.mp4
 chat.json:
 {
+  "hook": ["같은 빌라 살면서", "무슨 돈 얘기를 해"],  # (필수) 첫 1.3초 전체 화면 훅. 가장 황당한 대사·장면, 결론은 말하지 않기
+  "hook_sub": "내 택배 이틀 쓴 아랫집이 한 말",      # (선택) 훅 아래 작은 설명
   "title": ["내 택배 뜯어서", "이틀 쓴 아랫집"],   # 위쪽 고정 제목 (마지막 줄 노란 강조)
   "partner": "102호 아저씨",                       # 대화방 이름
   "messages": [
@@ -22,7 +24,8 @@ chat.json:
 }
 - them 메시지에 "name"을 주면 그 사람 이름표와 전용 색 아바타(이름 첫 글자)가 붙는다. 단톡방처럼 여러 명 가능.
 - 실제 대화 캡처가 아니라 사연을 재구성한 화면이므로 화면에 항상 "사연 내용 재구성" 표시가 붙는다.
-- 1080x1920, 30fps, 무음.
+- 1080x1920, 30fps. 목표 길이 12~15초: 말풍선 7~9개, 상황 설명(sys) 1~2개, 한 말풍선 20자 안팎.
+- 등장인물 카드는 기본으로 꺼져 있다("intro": true 일 때만). 첫 화면은 항상 hook.
 """
 import json
 import os
@@ -93,9 +96,9 @@ def render_bubble(msg):
     """메시지 하나를 RGBA 이미지로. (이미지, 정렬)"""
     kind = msg["t"]
     if kind == "sys":
-        f = noto(40, "Bold")
-        lines = wrap(msg["text"], f, 820)
-        lh = 56
+        f = noto(50, "Bold")
+        lines = wrap(msg["text"], f, 900)
+        lh = 68
         w = int(max(f.getlength(l) for l in lines)) + 64
         h = lh * len(lines) + 36
         im = Image.new("RGBA", (w, h), (0, 0, 0, 0))
@@ -104,9 +107,9 @@ def render_bubble(msg):
         for i, l in enumerate(lines):
             d.text((w // 2, 18 + lh * i + lh // 2), l, font=f, fill="white", anchor="mm")
         return im, "center"
-    f = noto(48, "Medium")
-    lines = wrap(msg["text"], f, 700)
-    lh = 66
+    f = noto(68, "Bold")
+    lines = wrap(msg["text"], f, 740)
+    lh = 90
     tw = int(max(f.getlength(l) for l in lines))
     bw, bh = tw + 64, lh * len(lines) + 40
     color = ME if kind == "me" else THEM
@@ -118,9 +121,9 @@ def render_bubble(msg):
         draw_avatar(d, msg.get("name", ""))
         d.text((av + 26, 0), msg.get("name", ""), font=noto(36, "Bold"), fill=(40, 40, 40))
         x0, y0 = av + 22, 52
-        d.rounded_rectangle((x0, y0, x0 + bw, y0 + bh), radius=34, fill=color)
+        d.rounded_rectangle((x0, y0, x0 + bw, y0 + bh), radius=40, fill=color)
         for i, l in enumerate(lines):
-            d.text((x0 + 32, y0 + 20 + lh * i), l, font=f, fill=DARK)
+            d.text((x0 + 32, y0 + 18 + lh * i), l, font=f, fill=DARK)
         return im, "left"
     label = msg.get("label")
     top = 52 if label else 0
@@ -214,6 +217,35 @@ def intro_card(spec):
     return im
 
 
+def hook_screen(spec, now):
+    """첫 1.3초: 가장 황당한 한마디를 화면 가득. 스크롤을 멈추게 하는 용도."""
+    im = Image.new("RGBA", (W, H), (18, 18, 18, 255))
+    d = ImageDraw.Draw(im)
+    p = min(1.0, now / 0.15)
+    lines = spec["hook"]
+    size = 150
+    tf = title_font(size)
+    while size > 90 and any(tf.getlength(l) > W - 120 for l in lines):
+        size -= 8
+        tf = title_font(size)
+    lh = int(size * 1.2)
+    y = H // 2 - lh * len(lines) // 2 + lh // 2 - 60
+    for i, line in enumerate(lines):
+        col = (255, 216, 77) if i == len(lines) - 1 else (255, 255, 255)
+        d.text((W // 2, y), line, font=tf, fill=col, anchor="mm", stroke_width=6, stroke_fill=(0, 0, 0))
+        y += lh
+    if spec.get("hook_sub"):
+        d.text((W // 2, y + 40), spec["hook_sub"], font=noto(52, "Bold"), fill=(220, 220, 220), anchor="mm")
+    d.text((W // 2, H - 220), "실제 사연 재구성 · 썰배달", font=noto(36, "Regular"), fill=(150, 150, 150), anchor="mm")
+    if p < 1:
+        s2 = 0.85 + 0.15 * p
+        sm = im.resize((int(W * s2), int(H * s2)))
+        base = Image.new("RGBA", (W, H), (18, 18, 18, 255))
+        base.alpha_composite(sm, ((W - sm.width) // 2, (H - sm.height) // 2))
+        return base
+    return im
+
+
 def pick_bgm(spec, assets):
     if spec.get("bgm"):
         return spec["bgm"]
@@ -285,27 +317,32 @@ def main(spec_path, out):
     for c in spec.get("cast", []):
         draw_avatar(ImageDraw.Draw(Image.new("RGBA", (110, 110))), c["name"])
 
-    intro = intro_card(spec) if (spec.get("cast") or spec.get("setup")) else None
-    intro_end = 2.8 if intro else 0.0
+    intro = intro_card(spec) if spec.get("intro") else None   # 등장인물 카드는 기본 끔(첫 3초 이탈 원인)
+    hook_end = 1.3 if spec.get("hook") else 0.0
+    intro_end = hook_end + (1.6 if intro else 0.0)
 
-    # 타임라인: 각 메시지 (등장시각, 이미지, 정렬, 높이), them 앞에는 입력중 표시
-    events, t = [], intro_end + (0.4 if intro else 1.2)
+    # 타임라인: 훅 화면 → 바로 대화. them 앞에는 짧은 입력중 표시
+    events, t = [], intro_end + 0.15
     for m in spec["messages"]:
         img, align = render_bubble(m)
         if m["t"] == "them":
-            events.append({"start": t, "typing": True, "dur": 0.6, "name": m["name"]})
-            t += 0.6
+            events.append({"start": t, "typing": True, "dur": 0.35, "name": m["name"]})
+            t += 0.35
         events.append({"start": t, "img": img, "align": align})
-        read = 0.9 + len(m["text"]) * 0.055
-        t += min(max(read, 1.3), 2.6)
-    end_start = t + 0.3
-    total = end_start + 3.2
+        read = 0.5 + len(m["text"]) * 0.04
+        t += min(max(read, 0.8), 1.7)
+    end_start = t + 0.2
+    total = end_start + 2.2
     nframes = int(total * FPS)
 
     tmp = tempfile.mkdtemp(prefix="chat_")
     gap = 26
     for fi in range(nframes):
         now = fi / FPS
+        if now < hook_end:
+            hs = hook_screen(spec, now)
+            hs.convert("RGB").save(os.path.join(tmp, f"{fi:05d}.jpg"), quality=90)
+            continue
         frame = Image.new("RGBA", (W, H), BG + (255,))
         # 보이는 메시지
         shown = [e for e in events if "img" in e and e["start"] <= now]
@@ -342,7 +379,7 @@ def main(spec_path, out):
         # 엔딩 오버레이
         if now >= end_start:
             p = min(1.0, (now - end_start) / 0.3)
-            ov = Image.new("RGBA", (W, H), (0, 0, 0, int(200 * p)))
+            ov = Image.new("RGBA", (W, H), (0, 0, 0, int(238 * p)))
             d = ImageDraw.Draw(ov)
             tf = title_font(130)
             yy = H // 2 - 160
@@ -371,6 +408,8 @@ def main(spec_path, out):
         else:
             cues.append(("sfx/plop.mp3", e["start"], None, 0.6))
     cues.append(("sfx/ding.mp3", end_start, None, 0.8))
+    if hook_end:
+        cues.append(("sfx/pop.mp3", 0.02, None, 1.0))
     bgm_name = pick_bgm(spec, assets)
     print("bgm:", bgm_name)
     bgm = os.path.join(assets, "bgm", bgm_name)
