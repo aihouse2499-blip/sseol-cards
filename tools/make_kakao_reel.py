@@ -21,6 +21,7 @@ chat.json:
 }
 - 실제 대화 캡처가 아니라 사연을 재구성한 화면이므로 위쪽에 항상 "사연 내용 재구성" 표시가 붙는다.
 - 시간·날짜처럼 기사에 없는 정보는 화면에 넣지 않는다.
+- v3(2026-11-24): 훅 1.4초, 말풍선 글자 62px, 빠른 진행. 목표 12~16초 = 말풍선 7~9개 + notice 1~2개, 말풍선 하나 20자 안팎.
 """
 import json
 import os
@@ -48,9 +49,9 @@ TOP = STATUS_H + HEAD_H
 INPUT_H = 150
 SIDE = 34
 AV = 118
-FS = 46
-LH = 62
-MAXW = 640
+FS = 62
+LH = 82
+MAXW = 730
 
 
 def font(size, w="Regular"):
@@ -240,7 +241,7 @@ def main(spec_path, out):
         items.append({"img": img, "x": x, "gap": gap_before, "side": s, "m": m})
         prev = s
 
-    hook_end = float(spec.get("hook_sec", 2.0))
+    hook_end = float(spec.get("hook_sec", 1.4))   # v3: 첫 화면은 짧고 강하게
     # 티저: 결정적인 말풍선(예: 상대의 막말)을 첫 화면에 먼저 보여주고 처음부터 대화를 재생 (open loop)
     teaser = None
     if spec.get("teaser") is not None:
@@ -256,9 +257,9 @@ def main(spec_path, out):
         it["start"] = t
         m = it["m"]
         n = len(m.get("text", "")) + 12 * len(m.get("items", []))
-        t += min(max(0.85 + n * 0.05, 1.2), 2.5)
-    end_start = t + 0.5
-    total = end_start + 3.0
+        t += min(max(0.6 + n * 0.035, 0.9), 1.7)   # v3: 빠른 진행 (목표 12~16초)
+    end_start = t + 0.3
+    total = end_start + 2.2
 
     top, bot = chrome(spec)
     area_top, area_bot = TOP + 20, H - INPUT_H - 24
@@ -295,7 +296,7 @@ def main(spec_path, out):
         # 첫 화면 훅 자막
         if now < hook_end + 0.3:
             a = 1.0 if now < hook_end else 1 - (now - hook_end) / 0.3
-            ov = Image.new("RGBA", (W, H), (0, 0, 0, int(150 * a)))
+            ov = Image.new("RGBA", (W, H), (0, 0, 0, int(215 * a)))
             if teaser is not None:
                 ti = teaser.copy()
                 ti.putalpha(ti.getchannel("A").point(lambda v: int(v * a)))
@@ -305,7 +306,7 @@ def main(spec_path, out):
                 ov.alpha_composite(ti, ((W - ti.width) // 2, int(H * 0.56)))
             od = ImageDraw.Draw(ov)
             lines = spec["hook"]
-            sz = 118
+            sz = 140
             while max(title_font(sz).getlength(l) for l in lines) > W - 80:
                 sz -= 6
             tf = title_font(sz)
@@ -318,7 +319,7 @@ def main(spec_path, out):
             frame.alpha_composite(ov)
         if now >= end_start:
             p = min(1.0, (now - end_start) / 0.3)
-            ov = Image.new("RGBA", (W, H), (0, 0, 0, int(205 * p)))
+            ov = Image.new("RGBA", (W, H), (0, 0, 0, int(238 * p)))
             od = ImageDraw.Draw(ov)
             yy = H // 2 - 170
             for line in spec["ending"]:
@@ -343,6 +344,7 @@ def main(spec_path, out):
         f = {"me": "sfx/pop.mp3", "them": "sfx/pop2.mp3"}.get(it["side"], "sfx/plop.mp3")
         cues.append((f, it["start"], 0.7))
     cues.append(("sfx/ding.mp3", end_start, 0.8))
+    cues.append(("sfx/pop.mp3", 0.02, 1.0))   # v3: 첫 프레임 효과음
     bgm_name = pick_bgm(spec, assets)
     print("bgm:", bgm_name)
     cmd = ["ffmpeg", "-loglevel", "error", "-y", "-i", silent, "-stream_loop", "-1", "-i", os.path.join(assets, "bgm", bgm_name)]
