@@ -1,0 +1,5 @@
+openverse_id: a05a02c0-ca97-41b2-84a3-79a9e646b252
+title: Credit Cards in Wallet
+creator: None
+license: cc0 1.0
+source: https://www.rawpixel.com/image/5970162/credit-cards-wallet
