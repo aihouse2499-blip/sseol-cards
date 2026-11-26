@@ -11,3 +11,6 @@ jazz_piano.mp3
 sims_beat.mp3
 lofi_loafy.mp3
 acoustic_upbeat.mp3
+good_vibe.mp3
+happy_taps.mp3
+happy_strings.mp3
