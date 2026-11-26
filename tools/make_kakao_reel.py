@@ -319,7 +319,7 @@ def main(spec_path, out):
             frame.alpha_composite(ov)
         if now >= end_start:
             p = min(1.0, (now - end_start) / 0.3)
-            ov = Image.new("RGBA", (W, H), (0, 0, 0, int(238 * p)))
+            ov = Image.new("RGBA", (W, H), (0, 0, 0, int(250 * p)))  # 11/26: 뒤 말풍선이 엔딩 글자와 겹쳐 보여 238→250
             od = ImageDraw.Draw(ov)
             yy = H // 2 - 170
             for line in spec["ending"]:

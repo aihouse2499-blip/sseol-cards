@@ -1,0 +1,21 @@
+{
+ "hook": ["이혼한 지 6개월", "전 시어머니가 카톡을"],
+ "teaser": 8,
+ "cover_title": ["이혼 6개월 넘어도", "전 시어머니 카톡", "답장 vs 차단"],
+ "cover_photo": "cards/2026-11-26-exmil/cover_photo.jpg",
+ "partner": "전 시어머니",
+ "mood": "daily",
+ "messages": [
+  {"t": "notice", "text": "이혼한 지 6개월 넘었는데…"},
+  {"t": "them", "text": "사랑한다"},
+  {"t": "them", "text": "건강하게 지내라"},
+  {"t": "notice", "text": "잊을 만하면, 밤낮없이 또"},
+  {"t": "them", "text": "사랑한다"},
+  {"t": "them", "text": "회사 생활은 괜찮니?"},
+  {"t": "them", "text": "커리어에서 좋은 결과 있으면"},
+  {"t": "them", "text": "연락해라"},
+  {"t": "them", "text": "밥 한번 먹자"}
+ ],
+ "ending": ["이혼 후 전 시어머니 카톡", "답장한다 vs 차단한다"],
+ "cta": "시댁 연락 부담인 친구한테 보내기"
+}
