@@ -17,3 +17,4 @@ happy_strings.mp3
 lofi_melody.mp3
 lofi_organ.mp3
 jazz_piano.mp3
+sims_beat.mp3
