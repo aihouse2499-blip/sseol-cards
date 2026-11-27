@@ -1,0 +1,5 @@
+openverse_id: 2fd9832c-6218-465f-94b9-edd4b6bf17e7
+title: A white takeout container divided into three sections. One section contains seasoned, sliced, grilled chicken, golden brown and slightly crispy. The second section features a fresh salad made of diced cucumbers, carrots, and sweet corn, sprinkled with seasoning. The third section holds a small serving of creamy sauce, possibly a tahini or garlic sauce, with a smooth texture.
+creator: Vishnu Chandra
+license: cc0 1.0
+source: https://wordpress.org/photos/photo/84469f2012/
