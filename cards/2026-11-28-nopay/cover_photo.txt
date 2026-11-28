@@ -1,0 +1,5 @@
+openverse_id: fc837d54-6c98-4816-9279-fa47cc6b4e5c
+title: Empty dining area with wooden tables and chairs. The kitchen door is in the background.
+creator: Satyam Vishwakarma (Satya)
+license: cc0 1.0
+source: https://wordpress.org/photos/photo/390661bc37/
