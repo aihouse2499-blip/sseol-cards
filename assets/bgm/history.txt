@@ -21,3 +21,4 @@ sims_beat.mp3
 lofi_loafy.mp3
 lofi_melody.mp3
 lofi_organ.mp3
+jazz_piano.mp3
